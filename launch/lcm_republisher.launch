@@ -21,6 +21,8 @@
       depth_topic: /camera/depth_registered/sw_registered/image_rect_raw
       debug_print_statements: true
 
+      output_lcm_channel: "OPENNI_FRAME"
+
     </rosparam>
   </node>
 
