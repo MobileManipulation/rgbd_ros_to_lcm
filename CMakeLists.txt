@@ -10,10 +10,11 @@ find_package(catkin REQUIRED COMPONENTS
 	message_filters
 	sensor_msgs
 	image_geometry
+  pcl_ros
 )
 
 find_package(lcm REQUIRED)
-# find_package(jpeg 80 EXACT REQUIRED)
+find_package(PCL REQUIRED)
 
 add_definitions(-std=c++11)
 
@@ -120,9 +121,13 @@ catkin_package(
 # include_directories(include)
 include_directories( 
     ${CMAKE_SOURCE_DIR}/${PROJECT_NAME}
+    ${PCL_INCLUDE_DIRS} 
     ${catkin_INCLUDE_DIRS} 
     include
 )
+link_directories(${PCL_LIBRARY_DIRS})
+add_definitions(${PCL_DEFINITIONS})
+
 
 add_executable(lcm_republisher
   src/lcm_republisher.cpp
@@ -133,6 +138,7 @@ add_dependencies(lcm_republisher
 )
 target_link_libraries(lcm_republisher
   lcm
+  ${PCL_LIBRARIES}
   ${catkin_LIBRARIES}
   jpeg_utils
 )
