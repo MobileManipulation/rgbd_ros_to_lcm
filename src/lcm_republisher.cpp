@@ -116,7 +116,6 @@ public:
     private_nh.param<std::string>("lcm_url", lcm_url, "");
     private_nh.param<std::string>("output_lcm_channel", lcm_channel, "");
 
-    
     if(!lcm.good())
         ros::shutdown();
 
@@ -365,10 +364,14 @@ bool cloudToImageAndDepthMat(const PointCloud::ConstPtr& cloud, cv::Mat& image, 
    void
    syncCallbackLCM(const sensor_msgs::ImageConstPtr rgb_msg, const sensor_msgs::ImageConstPtr depth_msg)
    {
-
-
     // Converting to OpenCV Mat
     cv::Mat rgb = cv_bridge::toCvShare(rgb_msg, rgb_msg->encoding)->image;
+    
+    if (!(depth_msg->encoding == sensor_msgs::image_encodings::TYPE_16UC1))
+    {
+      ROS_ERROR("Depth image format is %s. Expected 16UC1 image format", depth_msg->encoding.c_str());
+      return;
+    }
     cv::Mat depth = cv_bridge::toCvShare(depth_msg, depth_msg->encoding)->image;
 
     if (debug_print_statements)
