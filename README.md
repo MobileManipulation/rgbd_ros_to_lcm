@@ -3,6 +3,8 @@ ROS node to republish RGBD sensor data in LCM
 
 This ROS package contains a ROS node that subscribes to RGB and depth images from an RGBD sensor (Kinect, RealSense, etc.) and republishes the data to an LCM channel. The output LCM message format matches the format of the [`openni2-camera-lcm`](https://github.com/openhumanoids/openni2-camera-lcm) driver and is compatible with the [LabelFusion](http://labelfusion.csail.mit.edu/) pipeline for generating ground truth labels of RGBD data.
 
+For converting LCM messages to ROS, please refer to the [`lcm_to_ros`](https://github.com/nrjl/lcm_to_ros) package.
+
 # Installation
 
 ## Dependencies
@@ -52,5 +54,11 @@ roslaunch rgbd_ros_to_lcm lcm_republisher.launch
 * `compress_depth`: use ZLIB compression for depth images
 
 The default values of these parameters match the output of `openni2-camera-lcm` with both JPEG and ZLIB compression enabled. The data is published on the `OPENNI_FRAME` LCM channel.
+
+# Who do I talk to?
+
+To report bugs or problems with the package, please open an issue on our issue tracker.
+
+
 
 
