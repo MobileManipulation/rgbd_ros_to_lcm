@@ -48,8 +48,8 @@
 #include <sensor_msgs/PointCloud2.h>
 #include <cv_bridge/cv_bridge.h>
 
-// #include <rgbd/conversions.h>
 #include <rgbd_ros_to_lcm/jpeg_utils.h>
+
 #include <zlib.h>
 
 #include <lcm/lcm-cpp.hpp>
@@ -83,21 +83,14 @@ class LCMRepublisher
   message_filters::Synchronizer<ImageAndDepthSyncPolicy>* rgb_depth_sync_policy;
 
   ros::Publisher rgb_pub_, depth_pub_;
-  sensor_msgs::CameraInfo::ConstPtr camera_info;
-  image_geometry::PinholeCameraModel cam_model_;
 
-
-  std::string sensor_name;
-  std::string sensor_frame_id;
-
-  std::string cam_info_topic, cloud_topic, lcm_url, rgb_topic, depth_topic, lcm_channel;
+  std::string cloud_topic, lcm_url, rgb_topic, depth_topic, lcm_channel;
   bool subscribe_point_cloud;
 
 
   bool debug_output, debug_print_statements;
   bool compress_rgb;
   bool compress_depth;
-  std::string output_topic;
 
   lcm::LCM lcm;
 
@@ -135,13 +128,8 @@ public:
       depth_pub_ = private_nh.advertise<sensor_msgs::Image>("depth", 1, true);
       rgb_pub_ = private_nh.advertise<sensor_msgs::Image>("image", 1, true);
     }
-
-
-    private_nh.param<std::string>("sensor_name", sensor_name, "camera");
     
     private_nh.param("debug_print_statements", debug_print_statements, false);
-
-    private_nh.param<std::string>("camera_info_topic", cam_info_topic, "camera_info");
 
     if (subscribe_point_cloud)
     {
@@ -161,16 +149,6 @@ public:
       rgb_depth_sync_policy->registerCallback(boost::bind(&LCMRepublisher::syncCallbackLCM, this, _1, _2));
       ROS_WARN("Subscribed to synchronized topics: %s, %s", rgb_topic.c_str(), depth_topic.c_str());
     }
-
-    //$ initialize pinhole camera model from camera info 
-    ROS_WARN("Waiting for camera parameters on topic: %s", cam_info_topic.c_str());
-
-    camera_info = ros::topic::waitForMessage<sensor_msgs::CameraInfo>(cam_info_topic, nh_);
-    cam_model_.fromCameraInfo(camera_info);
-    ROS_WARN("Got camera parameters on %s", cam_info_topic.c_str());
-    sensor_frame_id = camera_info->header.frame_id;
-
-    private_nh.param<std::string>("output_topic", output_topic, "/"+sensor_name+"/image_and_depth");
 
     //$ JPEG compression parameters
     image_buf_size_ = 640 * 480 * 10;
