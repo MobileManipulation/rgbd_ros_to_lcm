@@ -124,14 +124,12 @@ include_directories(
     include
 )
 
-add_custom_target(bot_core_lcm_types COMMAND ${PROJECT_SOURCE_DIR}/scripts/generate_lcm_messages)
 add_executable(lcm_republisher
   src/lcm_republisher.cpp
   )
 
 add_dependencies(lcm_republisher
   ${catkin_EXPORTED_TARGETS}
-  bot_core_lcm_types
 )
 target_link_libraries(lcm_republisher
   lcm
