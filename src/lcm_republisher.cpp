@@ -75,11 +75,10 @@ class LCMRepublisher
   ros::NodeHandle nh_;
   ros::Subscriber sub_;
 
-  // Subscriber for the Kinect RGB stream
   ImageSubscriber* rgb_sub_;
-  // Subscriber for the Kinect Depth Map stream
   ImageSubscriber* depth_map_sub_;
-  // Kinect RGB-D Signal Synchronizer for Cropping Cloud
+
+  //$ message synchronizer for RGB and depth image
   message_filters::Synchronizer<ImageAndDepthSyncPolicy>* rgb_depth_sync_policy_;
 
   ros::Publisher rgb_pub_, depth_pub_;
@@ -91,7 +90,7 @@ class LCMRepublisher
   lcm::LCM lcm_;
   std::string lcm_channel_;
 
-  // Compression Buffers:
+  //$ compression buffers:
   int jpeg_quality_ = 94;
   uint8_t* image_buf_;
   int image_buf_size_;
@@ -173,10 +172,10 @@ public:
 
   /**
    * Convert an organized RGB point cloud to an RGB image and depth image.
-   * @param cloud       input organized color point cloud
+   * @param cloud     input organized color point cloud
    * @param image     output RGB image cv::Mat
    * @param depth     output depth image cv::Mat
-   * @return        true if conversion successful
+   * @return          true if conversion successful
    */
    bool cloudToImageAndDepthMat(const PointCloud::ConstPtr& cloud, cv::Mat& image, cv::Mat& depth)
    {
@@ -235,9 +234,15 @@ public:
     return true;
   }
 
+ /**
+  * Publish LCM message with combined RGB and depth image.
+  * @param timestamp     time images were acquired
+  * @param rgb           RGB image cv::Mat
+  * @param depth         depth image cv::Mat
+  */
   void publishLCM(long unsigned int timestamp, cv::Mat rgb, cv::Mat depth)
   {
-    // create LCM message
+    //$ create LCM message
 
     rgb_lcm_msg_->utime = timestamp;
 
@@ -332,7 +337,7 @@ public:
   }
   /**
    * Cloud callback method.
-   * @param image_msg   message with time-synchronized RGB image and depth
+   * @param cloud     input organized color point cloud
    */
    void cloudCallbackLCM(const PointCloud::ConstPtr& cloud)
    {
@@ -364,7 +369,8 @@ public:
 
   /**
    * Synchronized RGB and depth image callback method.
-   * @param image_msg   message with time-synchronized RGB image and depth
+   * @param rgb_msg     message with RGB image
+   * @param depth_msg   message depth image
    */
    void syncCallbackLCM(const sensor_msgs::ImageConstPtr rgb_msg, const sensor_msgs::ImageConstPtr depth_msg)
    {
