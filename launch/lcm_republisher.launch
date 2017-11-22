@@ -1,45 +1,23 @@
 <?xml version="1.0"?>
 <launch>
 
-  <arg name="max_images" default="1000" />
-
-  <arg name="debug_output" default="true" />
-
   <node name="lcm_republisher" pkg="rgbd_ros_to_lcm" type="lcm_republisher" output="screen" respawn="false" >
     
-    <!-- sensor parameters -->
-    <!-- <rosparam command="load" file="$(find segment_rgbd)/config/segment_realsense.yaml" /> -->
-
-    <rosparam subst_value="true">
-      max_images: $(arg max_images)
-      debug_output: $(arg debug_output) # republish resulting RGB and depth images
-      compress_rgb: true
-      compress_depth: true
-      
+    <rosparam subst_value="true">      
+      # input parameters
       subscribe_point_cloud: false
       rgb_topic: /camera/rgb/image_rect_color
       depth_topic: /camera/depth_registered/sw_registered/image_rect_raw
-      debug_print_statements: true
+      cloud_topic: /camera/depth_registered/points
 
+      # output parameters
       output_lcm_channel: "OPENNI_FRAME"
+      compress_rgb: true
+      compress_depth: true
 
+      debug_print_statements: true
     </rosparam>
   </node>
-
-  <group if="$(arg debug_output)">
-
-  <node name="debug_image" pkg="image_view" type="image_view">
-    <remap from="image" to="/elastic_fusion_logger/image" />
-    <param name="autosize" value="true" />
-  </node>
-
-  <node name="debug_depth" pkg="image_view" type="image_view">
-    <remap from="image" to="/elastic_fusion_logger/depth" />
-    <param name="autosize" value="true" />
-  </node>
-
-</group>
-
 </launch>
 
 
