@@ -113,7 +113,7 @@ public:
 
 
     private_nh.param<std::string>("lcm_url", lcm_url, "");
-    private_nh.param<std::string>("output_lcm_channel", lcm_channel_, "");
+    private_nh.param<std::string>("output_lcm_channel", lcm_channel_, "OPENNI_FRAME");
 
     if(!lcm_.good())
         ros::shutdown();
@@ -150,15 +150,20 @@ public:
       ROS_WARN("Subscribed to synchronized topics: %s, %s", rgb_topic.c_str(), depth_topic.c_str());
     }
 
+    //$ get one message from each topic to get image dimensions
+    sensor_msgs::Image::ConstPtr rgb_msg = ros::topic::waitForMessage<sensor_msgs::Image>(rgb_topic, nh_);
+    sensor_msgs::Image::ConstPtr depth_msg = ros::topic::waitForMessage<sensor_msgs::Image>(depth_topic, nh_);
+
     //$ JPEG compression parameters
-    image_buf_size_ = 640 * 480 * 10;
+    image_buf_size_ = rgb_msg->width * rgb_msg->height * 10;
     if (0 != posix_memalign((void**) &image_buf_, 16, image_buf_size_)) 
     {
-      fprintf(stderr, "Error allocating image buffer\n");
+      ROS_ERROR("Error allocating image buffer");
+      ros::shutdown();
     }
 
     //$ allocate space for ZLIB compression depth data
-    depth_compress_buf_size_ = 640 * 480 * sizeof(int16_t) * 4;
+    depth_compress_buf_size_ = depth_msg->width * depth_msg->height * sizeof(int16_t) * 4;
     depth_compress_buf_ = (uint8_t*) malloc(depth_compress_buf_size_);
 
     rgb_lcm_msg_ = new bot_core::image_t();
