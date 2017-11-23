@@ -376,12 +376,12 @@ public:
    {
     // Converting to OpenCV Mat
     cv::Mat rgb = cv_bridge::toCvShare(rgb_msg, rgb_msg->encoding)->image;
-    
-    if (!(depth_msg->encoding == sensor_msgs::image_encodings::TYPE_16UC1))
-    {
-      ROS_ERROR("Depth image format is %s. Expected 16UC1 image format", depth_msg->encoding.c_str());
-      return;
-    }
+
+    ROS_INFO("RGB encoding: %s", rgb_msg->encoding.c_str());
+
+
+    ROS_INFO("Depth encoding: %s", depth_msg->encoding.c_str());
+
     cv::Mat depth = cv_bridge::toCvShare(depth_msg, depth_msg->encoding)->image;
 
     if (debug_print_statements_)
@@ -391,6 +391,46 @@ public:
 
     if (debug_print_statements_)
       ROS_INFO("Images acquired at %lu", timestamp);
+
+    //$ check RGB encoding
+    if (rgb_msg->encoding == sensor_msgs::image_encodings::RGB8)
+    {
+      if (debug_print_statements_)
+        ROS_WARN("Converting rgb8 encoding to bgr8");
+
+      //$ convert to BGR channel order
+      cv::cvtColor(rgb, rgb, CV_RGB2BGR);
+    }
+    else if (rgb_msg->encoding == sensor_msgs::image_encodings::BGR8)
+    {
+      if (debug_print_statements_)
+        ROS_WARN("Encoding is bgr8");
+    }
+    else
+    {
+      ROS_ERROR("Unexpected image encoding %s in input RGB image, only bgr8 and rgb8 encodings are supported.", rgb_msg->encoding.c_str());
+      ros::shutdown();
+    }
+
+    //$ check depth encoding
+    if (depth_msg->encoding == sensor_msgs::image_encodings::TYPE_16UC1)
+    {
+      if (debug_print_statements_)
+        ROS_ERROR("Depth image format is 16UC1");
+    }
+    else if (depth_msg->encoding == sensor_msgs::image_encodings::TYPE_32FC1)
+    {
+      if (debug_print_statements_)
+        ROS_WARN("Converting depth from 32FC1 to 16UC1");
+
+      //$ convert to 16UC1
+      depth.convertTo(depth, CV_16UC1, 1000.0); 
+    }
+    else
+    {
+      ROS_ERROR("Unexpected image encoding %s in input depth image, only 16UC1 and 32FC1 encodings are supported.", depth_msg->encoding.c_str());
+      ros::shutdown();
+    }
 
     publishLCM(timestamp, rgb, depth);
   }
