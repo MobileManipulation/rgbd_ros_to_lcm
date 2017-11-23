@@ -49,9 +49,10 @@ roslaunch rgbd_ros_to_lcm lcm_republisher.launch
 
 ### Output Parameters
 
-* `output_lcm_channel`: name of LCM channel for published output
 * `compress_rgb`: use JPEG compression for RGB images
 * `compress_depth`: use ZLIB compression for depth images
+* `output_lcm_channel`: name of LCM channel for published output
+* `lcm_url`: LCM URL
 
 The default values of these parameters match the output of `openni2-camera-lcm` with both JPEG and ZLIB compression enabled. The data is published on the `OPENNI_FRAME` LCM channel.
 
