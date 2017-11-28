@@ -12,6 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
 
 find_package(lcm REQUIRED)
 find_package(PCL REQUIRED)
+# find_package(jpeg REQUIRED EXACT 90)
 
 add_definitions(-std=c++11)
 
@@ -68,7 +69,8 @@ add_dependencies(jpeg_utils
   ${catkin_EXPORTED_TARGETS}
 )
 target_link_libraries(jpeg_utils
-  # jpeg
+  jpeg
+  z
   ${catkin_LIBRARIES}
 )
 
