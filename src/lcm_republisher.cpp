@@ -379,6 +379,9 @@ public:
       //$ return from callback if conversion to images fails
       return;
     }
+      
+    //$ convert channel order
+    cv::cvtColor(rgb, rgb, CV_RGB2BGR);
 
     if (debug_print_statements_)
       ROS_INFO("conversion to rgb and depth cv::Mat done");
@@ -417,16 +420,16 @@ public:
     if (rgb_msg->encoding == sensor_msgs::image_encodings::RGB8)
     {
       if (debug_print_statements_)
-        ROS_WARN("Converting rgb8 encoding to bgr8");
-
-      //$ convert to BGR channel order
-      cv::cvtColor(rgb, rgb, CV_RGB2BGR);
+        ROS_WARN("Encoding is rgb8");
     }
     else if (rgb_msg->encoding == sensor_msgs::image_encodings::BGR8)
     {
       if (debug_print_statements_)
-        ROS_WARN("Encoding is bgr8");
-    }
+        ROS_WARN("Encoding is bgr8, converting channel oder");
+      
+      //$ convert channel order
+      cv::cvtColor(rgb, rgb, CV_RGB2BGR);
+      }
     else
     {
       ROS_ERROR("Unexpected image encoding %s in input RGB image, only bgr8 and rgb8 encodings are supported.", rgb_msg->encoding.c_str());
