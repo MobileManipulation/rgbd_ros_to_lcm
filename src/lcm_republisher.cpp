@@ -131,11 +131,20 @@ public:
     bool subscribe_point_cloud;
     private_nh.getParam("subscribe_point_cloud", subscribe_point_cloud);
 
+    private_nh.param<std::string>("rgb_topic", rgb_topic, "rgb_topic");
+    private_nh.param<std::string>("depth_topic", depth_topic, "depth_topic");
+
+    int rgb_width, rgb_height, depth_width, depth_height;
+
     if (subscribe_point_cloud)
     {
       private_nh.param<std::string>("cloud_topic", cloud_topic, "point_cloud_topic");
       sub_ = nh_.subscribe<PointCloud>(cloud_topic, 1, &LCMRepublisher::cloudCallbackLCM, this);
       ROS_WARN("Subscribed to cloud topic: %s", cloud_topic.c_str());
+
+      sensor_msgs::PointCloud2::ConstPtr cloud_msg = ros::topic::waitForMessage<sensor_msgs::PointCloud2>(cloud_topic, nh_);
+      rgb_width = depth_width = cloud_msg->width;
+      rgb_height = depth_height = cloud_msg->height;
     }
     else
     {
@@ -148,23 +157,30 @@ public:
       rgb_depth_sync_policy_ = new message_filters::Synchronizer<ImageAndDepthSyncPolicy>(ImageAndDepthSyncPolicy(10), *rgb_sub_, *depth_map_sub_);
       rgb_depth_sync_policy_->registerCallback(boost::bind(&LCMRepublisher::syncCallbackLCM, this, _1, _2));
       ROS_WARN("Subscribed to synchronized topics: %s, %s", rgb_topic.c_str(), depth_topic.c_str());
+
+      //$ get one message from each topic to get image dimensions
+      sensor_msgs::Image::ConstPtr rgb_msg = ros::topic::waitForMessage<sensor_msgs::Image>(rgb_topic, nh_);
+      sensor_msgs::Image::ConstPtr depth_msg = ros::topic::waitForMessage<sensor_msgs::Image>(depth_topic, nh_);
+      rgb_width = rgb_msg->width;
+      rgb_height = rgb_msg->height;
+      depth_width = depth_msg->width;
+      depth_height = depth_msg->height;
     }
 
-    //$ get one message from each topic to get image dimensions
-    sensor_msgs::Image::ConstPtr rgb_msg = ros::topic::waitForMessage<sensor_msgs::Image>(rgb_topic, nh_);
-    sensor_msgs::Image::ConstPtr depth_msg = ros::topic::waitForMessage<sensor_msgs::Image>(depth_topic, nh_);
-
     //$ JPEG compression parameters
-    image_buf_size_ = rgb_msg->width * rgb_msg->height * 10;
+    image_buf_size_ = rgb_width * rgb_height * 10;
     if (0 != posix_memalign((void**) &image_buf_, 16, image_buf_size_)) 
     {
       ROS_ERROR("Error allocating image buffer");
       ros::shutdown();
     }
+    ROS_INFO("Allocated jpeg compression buffer for dimensions %d x %d", rgb_width, rgb_height);
 
     //$ allocate space for ZLIB compression depth data
-    depth_compress_buf_size_ = depth_msg->width * depth_msg->height * sizeof(int16_t) * 4;
+    depth_compress_buf_size_ = depth_width * depth_height * sizeof(int16_t) * 4;
     depth_compress_buf_ = (uint8_t*) malloc(depth_compress_buf_size_);
+
+    ROS_INFO("Allocated zlib compression buffer for dimensions %d x %d", depth_width, depth_height);
 
     rgb_lcm_msg_ = new bot_core::image_t();
     depth_lcm_msg_ = new bot_core::image_t();
