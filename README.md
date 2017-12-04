@@ -30,7 +30,7 @@ catkin_make
 
 # Usage
 
-To run the `lcm_republisher` node, use the example launch file provided:
+The `lcm_republisher` ROS node subscribes to the output of an RGBD sensor driver ROS node, like the [realsense driver](https://github.com/intel-ros/realsense). First, launch the sensor driver. Then, to run the `lcm_republisher` node, use the example launch file provided:
 
 ```bash
 roslaunch rgbd_ros_to_lcm lcm_republisher.launch
