@@ -49,14 +49,25 @@ add_definitions(${PCL_DEFINITIONS})
 
 add_executable(lcm_republisher
   src/lcm_republisher.cpp
-  )
-
+)
 add_dependencies(lcm_republisher
   ${catkin_EXPORTED_TARGETS}
 )
 target_link_libraries(lcm_republisher
   lcm
   ${PCL_LIBRARIES}
+  ${catkin_LIBRARIES}
+  jpeg_utils
+)
+
+add_executable(image_extractor
+  src/image_extractor.cpp
+)
+add_dependencies(image_extractor
+  ${catkin_EXPORTED_TARGETS}
+)
+target_link_libraries(image_extractor
+  lcm
   ${catkin_LIBRARIES}
   jpeg_utils
 )
