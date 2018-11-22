@@ -16,6 +16,7 @@ class ImageExtractor
 {
     std::string lcm_logfile_path_;
     std::string lcm_channel_;
+    std::string output_folder_;
 
     unsigned short * depth;
     unsigned char * rgb;
@@ -137,8 +138,14 @@ public:
     depth = (unsigned short *)depth_decompress_buf_;
     rgb = (unsigned char *)&image_decompress_buf_[0];
 
-    cv::Mat rgb_mat(height, width, CV_8UC3, &image_decompress_buf_[0]); 
-    cv::imwrite("/Users/momap/log_robot/rgb.png", rgb_mat);
+    cv::Mat image_mat(height, width, CV_8UC3, &image_decompress_buf_[0]); 
+    cv::cvtColor(image_mat, image_mat, CV_RGB2BGR);
+    cv::imwrite("/Users/momap/log_robot/image.png", image_mat);
+
+    cv::Mat depth_mat(height, width, CV_16UC1, &depth_decompress_buf_[0]); 
+    cv::imwrite("/Users/momap/log_robot/depth.png", depth_mat);
+
+
     ros::shutdown();
 
 
