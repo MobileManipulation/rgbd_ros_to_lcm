@@ -25,13 +25,19 @@ public:
     private_nh.param<std::string>("lcm_channel", lcm_channel_, "OPENNI_FRAME");
 
     lcm::LogFile* logfile = new lcm::LogFile(lcm_logfile_path_, "r");
+    ROS_INFO("Reading logfile from %s", lcm_logfile_path_.c_str());
 
-    const lcm::LogEvent* event = 0;
+    const lcm::LogEvent* event = nullptr;
     int i = 0;
-    while (event != NULL)
+    while (true)
     {
         event = logfile->readNextEvent();
+        if (event == nullptr) {
+            //$ reached the end of the log
+            break;
+        }
         if (event->channel == lcm_channel_) {
+            //$ only consider events that are on the desired channel
             i++;
         }
     }
