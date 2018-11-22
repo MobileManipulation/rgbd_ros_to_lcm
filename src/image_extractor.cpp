@@ -13,11 +13,26 @@
 
 class ImageExtractor
 {
-  std::string lcm_logfile_path_;
-  std::string lcm_channel_;
+    std::string lcm_logfile_path_;
+    std::string lcm_channel_;
+
+    unsigned short * depth;
+    unsigned char * rgb;
+
+    int width;
+    int height;
+    int num_pixels_;
+
+    unsigned char * depth_decompress_buf_;
+    unsigned char * image_decompress_buf_;
+    int32_t depth_size_;
+    int32_t image_size_;
 
 public:
-  ImageExtractor()
+  ImageExtractor() : depth(0),
+                     rgb(0),
+                     depth_decompress_buf_(0),
+                     image_decompress_buf_(0)
   {
     ros::NodeHandle private_nh("~");
 
@@ -57,6 +72,58 @@ public:
   {
     int64_t timestamp = message.utime;
     std::cout << "timestamp: " << timestamp << std::endl;
+
+    bot_core::image_t color_image = message.images[0];
+    bot_core::image_t depth_image = message.images[1];
+
+
+    bool zlib_compressed = false;
+
+    if (depth_image.pixelformat == bot_core::image_t::PIXEL_FORMAT_INVALID)
+    {
+      zlib_compressed = true;
+    }
+
+    depth_size_ = depth_image.size;
+    image_size_ = color_image.size;
+
+    if(depth_size_ == num_pixels_ * 2)
+    {
+       // printf("copying depth image\n");
+        memcpy(&depth_decompress_buf_[0], depth_image.data.data(), num_pixels_ * 2);
+    }
+    else
+    {
+      // printf("uncompress depth image\n");
+        unsigned long decomp_length = num_pixels_ * 2;
+        uncompress(&depth_decompress_buf_[0], (unsigned long *)&decomp_length, (const Bytef *)depth_image.data.data(), depth_size_);
+    }
+
+    if(image_size_ == num_pixels_ * 3)
+    {
+      //  printf("copy color image\n");
+        memcpy(&image_decompress_buf_[0], color_image.data.data(), num_pixels_ * 3);
+    }
+    else if(image_size_ > 0)
+    {
+      //  printf("jpeg read color image\n");
+        std::cout << "before jpeg read data" << std::endl;
+        std::cout << "image_size_: " << image_size_ << std::endl;
+        size_t w = color_image.width;
+        size_t h = color_image.height;
+        jpegijg_decompress_8u_rgb(color_image.data.data(), color_image.size, (unsigned char *)&image_decompress_buf_[0], w, h, w*3);
+
+        std::cout << "after jpeg read data" << std::endl;
+    }
+    else
+    {
+        memset(&image_decompress_buf_[0], 0, num_pixels_ * 3);
+    }
+
+    depth = (unsigned short *)depth_decompress_buf_;
+    rgb = (unsigned char *)&image_decompress_buf_[0];
+
+
   }
 
 };
