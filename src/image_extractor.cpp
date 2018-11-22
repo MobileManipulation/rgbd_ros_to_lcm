@@ -1,6 +1,7 @@
 #include <ros/ros.h>
 
 #include <cv_bridge/cv_bridge.h>
+#include <opencv2/opencv.hpp>
 
 #include <rgbd_ros_to_lcm/jpeg_utils.h>
 
@@ -74,7 +75,9 @@ public:
   void initializeDimensions(bot_core::images_t message)
   {
     bot_core::image_t color_image = message.images[0];
-    num_pixels_ = color_image.width * color_image.height;
+    width = color_image.width;
+    height = color_image.height;
+    num_pixels_ = width * height;
     depth_decompress_buf_ = new unsigned char[num_pixels_ * 2];
     image_decompress_buf_ = new unsigned char[num_pixels_ * 3];
   }
@@ -133,6 +136,11 @@ public:
 
     depth = (unsigned short *)depth_decompress_buf_;
     rgb = (unsigned char *)&image_decompress_buf_[0];
+
+    cv::Mat rgb_mat(height, width, CV_8UC3, &image_decompress_buf_[0]); 
+    cv::imwrite("/Users/momap/log_robot/rgb.png", rgb_mat);
+    ros::shutdown();
+
 
 
   }
