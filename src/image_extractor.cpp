@@ -39,6 +39,9 @@ public:
         if (event->channel == lcm_channel_) {
             //$ only consider events that are on the desired channel
             i++;
+            bot_core::images_t message;
+            message.decode(event->data, 0, event->datalen);
+            decompressAndSaveImages(message);
         }
     }
 
@@ -48,6 +51,12 @@ public:
 
   ~ImageExtractor()
   {
+  }
+
+  void decompressAndSaveImages(bot_core::images_t message)
+  {
+    int64_t timestamp = message.utime;
+    std::cout << "timestamp: " << timestamp << std::endl;
   }
 
 };
