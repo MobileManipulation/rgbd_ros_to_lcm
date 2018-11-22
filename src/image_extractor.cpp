@@ -53,10 +53,13 @@ public:
         }
         if (event->channel == lcm_channel_) {
             //$ only consider events that are on the desired channel
-            i++;
             bot_core::images_t message;
             message.decode(event->data, 0, event->datalen);
+            if (i == 0) {
+                initializeDimensions(message);
+            }
             decompressAndSaveImages(message);
+            i++;
         }
     }
 
@@ -66,6 +69,14 @@ public:
 
   ~ImageExtractor()
   {
+  }
+
+  void initializeDimensions(bot_core::images_t message)
+  {
+    bot_core::image_t color_image = message.images[0];
+    num_pixels_ = color_image.width * color_image.height;
+    depth_decompress_buf_ = new unsigned char[num_pixels_ * 2];
+    image_decompress_buf_ = new unsigned char[num_pixels_ * 3];
   }
 
   void decompressAndSaveImages(bot_core::images_t message)
