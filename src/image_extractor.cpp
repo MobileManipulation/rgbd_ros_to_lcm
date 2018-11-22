@@ -145,11 +145,6 @@ public:
     cv::Mat depth_mat(height, width, CV_16UC1, &depth_decompress_buf_[0]); 
     cv::imwrite("/Users/momap/log_robot/depth.png", depth_mat);
 
-
-    ros::shutdown();
-
-
-
   }
 
 };
