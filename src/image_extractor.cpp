@@ -1,4 +1,5 @@
 #include <ros/ros.h>
+#include <boost/filesystem.hpp>
 
 #include <cv_bridge/cv_bridge.h>
 #include <opencv2/opencv.hpp>
@@ -18,9 +19,6 @@ class ImageExtractor
     std::string lcm_channel_;
     std::string output_folder_;
 
-    unsigned short * depth;
-    unsigned char * rgb;
-
     int width;
     int height;
     int num_pixels_;
@@ -31,15 +29,31 @@ class ImageExtractor
     int32_t image_size_;
 
 public:
-  ImageExtractor() : depth(0),
-                     rgb(0),
-                     depth_decompress_buf_(0),
+  ImageExtractor() : depth_decompress_buf_(0),
                      image_decompress_buf_(0)
   {
     ros::NodeHandle private_nh("~");
 
-    private_nh.param<std::string>("lcm_logfile", lcm_logfile_path_, "");
-    private_nh.param<std::string>("lcm_channel", lcm_channel_, "OPENNI_FRAME");
+    if (!private_nh.getParam("lcm_channel", lcm_channel_)) 
+    {
+      ROS_FATAL("No LCM channel specified!");
+      ros::shutdown();
+    }
+
+    if (!private_nh.getParam("lcm_logfile", lcm_logfile_path_)) 
+    {
+      ROS_FATAL("No logfile specified!");
+      ros::shutdown();
+    }
+
+    if (!private_nh.getParam("output_folder", output_folder_)) 
+    {
+      ROS_FATAL("No output folder given, cannot save images!");
+      ros::shutdown();
+    }
+
+    boost::filesystem::create_directories(output_folder_);
+    ROS_WARN("Output folder: %s", output_folder_.c_str());
 
     lcm::LogFile* logfile = new lcm::LogFile(lcm_logfile_path_, "r");
     ROS_INFO("Reading logfile from %s", lcm_logfile_path_.c_str());
@@ -135,15 +149,15 @@ public:
         memset(&image_decompress_buf_[0], 0, num_pixels_ * 3);
     }
 
-    depth = (unsigned short *)depth_decompress_buf_;
-    rgb = (unsigned char *)&image_decompress_buf_[0];
-
     cv::Mat image_mat(height, width, CV_8UC3, &image_decompress_buf_[0]); 
-    cv::cvtColor(image_mat, image_mat, CV_RGB2BGR);
-    cv::imwrite("/Users/momap/log_robot/image.png", image_mat);
+    cv::cvtColor(image_mat, image_mat, CV_RGB2BGR); //$ flip RGB -> BGR channel order for saving with OpenCV
 
+    std::string image_name = output_folder_ + "/" + std::to_string(timestamp) + "_image.png";
+    cv::imwrite(image_name, image_mat);
+
+    std::string depth_name = output_folder_ + "/" + std::to_string(timestamp) + "_depth.png";
     cv::Mat depth_mat(height, width, CV_16UC1, &depth_decompress_buf_[0]); 
-    cv::imwrite("/Users/momap/log_robot/depth.png", depth_mat);
+    cv::imwrite(depth_name, depth_mat);
 
   }
 
