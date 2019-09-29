@@ -140,7 +140,7 @@ public:
     {
       private_nh.param<std::string>("cloud_topic", cloud_topic, "point_cloud_topic");
       sub_ = nh_.subscribe<PointCloud>(cloud_topic, 1, &LCMRepublisher::cloudCallbackLCM, this);
-      ROS_WARN("Subscribed to cloud topic: %s", cloud_topic.c_str());
+      ROS_INFO("Subscribed to cloud topic: %s", cloud_topic.c_str());
 
       sensor_msgs::PointCloud2::ConstPtr cloud_msg = ros::topic::waitForMessage<sensor_msgs::PointCloud2>(cloud_topic, nh_);
       rgb_width = depth_width = cloud_msg->width;
@@ -156,7 +156,7 @@ public:
 
       rgb_depth_sync_policy_ = new message_filters::Synchronizer<ImageAndDepthSyncPolicy>(ImageAndDepthSyncPolicy(10), *rgb_sub_, *depth_map_sub_);
       rgb_depth_sync_policy_->registerCallback(boost::bind(&LCMRepublisher::syncCallbackLCM, this, _1, _2));
-      ROS_WARN("Subscribed to synchronized topics: %s, %s", rgb_topic.c_str(), depth_topic.c_str());
+      ROS_INFO("Subscribed to synchronized topics: %s, %s", rgb_topic.c_str(), depth_topic.c_str());
 
       //$ get one message from each topic to get image dimensions
       sensor_msgs::Image::ConstPtr rgb_msg = ros::topic::waitForMessage<sensor_msgs::Image>(rgb_topic, nh_);
@@ -353,7 +353,7 @@ public:
     lcm_.publish(lcm_channel_, &images);
 
     i_++;
-    ROS_WARN("Frame %d", i_);
+    ROS_INFO("Frame %d", i_);
 
   }
   /**
@@ -420,7 +420,7 @@ public:
     if (rgb_msg->encoding == sensor_msgs::image_encodings::RGB8)
     {
       if (debug_print_statements_)
-        ROS_WARN("Encoding is rgb8");
+        ROS_INFO("Encoding is rgb8");
     }
     else if (rgb_msg->encoding == sensor_msgs::image_encodings::BGR8)
     {
@@ -440,12 +440,12 @@ public:
     if (depth_msg->encoding == sensor_msgs::image_encodings::TYPE_16UC1)
     {
       if (debug_print_statements_)
-        ROS_ERROR("Depth image format is 16UC1");
+        ROS_INFO("Depth image format is 16UC1");
     }
     else if (depth_msg->encoding == sensor_msgs::image_encodings::TYPE_32FC1)
     {
       if (debug_print_statements_)
-        ROS_WARN("Converting depth from 32FC1 to 16UC1");
+        ROS_INFO("Converting depth from 32FC1 to 16UC1");
 
       //$ convert to 16UC1
       depth.convertTo(depth, CV_16UC1, 1000.0); 
