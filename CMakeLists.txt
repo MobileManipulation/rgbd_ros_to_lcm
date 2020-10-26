@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(rgbd_ros_to_lcm)
 
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 find_package(catkin REQUIRED COMPONENTS
 	roscpp
 	cv_bridge
@@ -12,9 +15,7 @@ find_package(catkin REQUIRED COMPONENTS
 
 find_package(lcm REQUIRED)
 find_package(PCL REQUIRED)
-# find_package(jpeg REQUIRED EXACT 90)
 
-add_definitions(-std=c++11)
 
 ###################################
 ## catkin specific configuration ##
@@ -49,14 +50,25 @@ add_definitions(${PCL_DEFINITIONS})
 
 add_executable(lcm_republisher
   src/lcm_republisher.cpp
-  )
-
+)
 add_dependencies(lcm_republisher
   ${catkin_EXPORTED_TARGETS}
 )
 target_link_libraries(lcm_republisher
   lcm
   ${PCL_LIBRARIES}
+  ${catkin_LIBRARIES}
+  jpeg_utils
+)
+
+add_executable(image_extractor
+  src/image_extractor.cpp
+)
+add_dependencies(image_extractor
+  ${catkin_EXPORTED_TARGETS}
+)
+target_link_libraries(image_extractor
+  lcm
   ${catkin_LIBRARIES}
   jpeg_utils
 )

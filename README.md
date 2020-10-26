@@ -17,15 +17,15 @@ Clone this repository into your catkin workspace:
 cd ~/catkin_ws/src
 git clone https://github.com/MobileManipulation/rgbd_ros_to_lcm.git
 cd rgbd_ros_to_lcm
+cd ~/catkin_ws
+catkin_make
 ```
 
-Before invoking `catkin_make`, the C++ LCM message definitions need to be generated for the image LCM types:
+To generate C++ LCM message definitions for the image LCM types:
 
 ```bash
 cd include
 lcm-gen -x ../lcmtypes/*.lcm
-cd ~/catkin_ws
-catkin_make
 ```
 
 # Usage
