@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(rgbd_ros_to_lcm)
 
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 find_package(catkin REQUIRED COMPONENTS
 	roscpp
 	cv_bridge
@@ -12,9 +15,7 @@ find_package(catkin REQUIRED COMPONENTS
 
 find_package(lcm REQUIRED)
 find_package(PCL REQUIRED)
-# find_package(jpeg REQUIRED EXACT 90)
 
-add_definitions(-std=c++11)
 
 ###################################
 ## catkin specific configuration ##
