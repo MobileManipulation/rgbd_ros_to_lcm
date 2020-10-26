@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<launch>
+
+  <node name="image_extractor" pkg="rgbd_ros_to_lcm" type="image_extractor" output="screen" respawn="false" >
+    
+    <rosparam subst_value="true">      
+      lcm_channel: "REALSENSE_RGBD"
+      lcm_logfile: x.lcmlog
+      output_folder: test_image_extractor
+    </rosparam>
+  </node>
+</launch>
+
+
