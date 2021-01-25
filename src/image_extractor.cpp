@@ -100,8 +100,8 @@ public:
 
   void decompressAndSaveImages(bot_core::images_t message)
   {
-    int64_t timestamp = message.utime;
-    ROS_INFO("Timestamp: %llu", timestamp);
+    int64_t timestamp {message.utime};
+    ROS_INFO("Timestamp: %li", timestamp);
 
     bot_core::image_t color_image = message.images[0];
     bot_core::image_t depth_image = message.images[1];
