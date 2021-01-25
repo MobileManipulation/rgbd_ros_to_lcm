@@ -223,7 +223,7 @@ public:
       }
 
     }
-    catch (std::runtime_error e)
+    catch (std::runtime_error& e)
     {
       ROS_ERROR_STREAM("Error in converting cloud to RGB image message: "
         << e.what());
@@ -365,7 +365,6 @@ public:
 
     std_msgs::Header cloud_header;
     pcl_conversions::fromPCL(cloud->header, cloud_header);
-    ros::Time acquisition_time = cloud_header.stamp;
 
     if (debug_print_statements_)
       ROS_INFO("Point cloud acquired at %lu", (long unsigned int) cloud->header.stamp);
@@ -409,7 +408,7 @@ public:
     cv::Mat depth = cv_bridge::toCvShare(depth_msg, depth_msg->encoding)->image;
 
     if (debug_print_statements_)
-      ROS_INFO("Stamp %llu", rgb_msg->header.stamp.toNSec());
+      ROS_INFO("Stamp %lu", rgb_msg->header.stamp.toNSec());
 
     long unsigned int timestamp = (long unsigned int) (rgb_msg->header.stamp.toNSec() / 1e3);
 

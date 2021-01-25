@@ -7,12 +7,12 @@
 #include <rgbd_ros_to_lcm/jpeg_utils.h>
 
 static void
-init_source (j_decompress_ptr cinfo)
+init_source (j_decompress_ptr)
 {
 }
 
 static boolean
-fill_input_buffer (j_decompress_ptr cinfo)
+fill_input_buffer (j_decompress_ptr)
 {
 //    fprintf (stderr, "Error: JPEG decompressor ran out of buffer space\n");
     return TRUE;
@@ -26,14 +26,13 @@ skip_input_data (j_decompress_ptr cinfo, long num_bytes)
 }
 
 static void
-term_source (j_decompress_ptr cinfo)
+term_source (j_decompress_ptr)
 {
 }
 
 static void 
-jpeg_err_emit_message(j_common_ptr cinfo, int msg_level)
+jpeg_err_emit_message(j_common_ptr, int)  // cinfo, msg_level
 {
-    // suppress warnings and errors
 }
 
 static int
@@ -81,14 +80,15 @@ jpegijg_decompress_8u (const uint8_t * src, int src_size,
     cinfo.out_color_space = ocs;
     jpeg_start_decompress (&cinfo);
 
-    if (cinfo.output_height != height || cinfo.output_width != width) {
+    if (static_cast<int>(cinfo.output_height) != height
+            || static_cast<int>(cinfo.output_width) != width) {
         fprintf (stderr, "Error: Buffer was %dx%d but JPEG image is %dx%d\n",
                 width, height, cinfo.output_width, cinfo.output_height);
         jpeg_destroy_decompress (&cinfo);
         return -1;
     }
 
-    while (cinfo.output_scanline < height) {
+    while (static_cast<int>(cinfo.output_scanline) < height) {
         uint8_t * row = dest + cinfo.output_scanline * stride;
         jpeg_read_scanlines (&cinfo, &row, 1);
     }
@@ -98,22 +98,20 @@ jpegijg_decompress_8u (const uint8_t * src, int src_size,
 }
 
 static void
-init_destination (j_compress_ptr cinfo)
+init_destination (j_compress_ptr)
 {
-    /* do nothing */
 }
 
 static boolean
-empty_output_buffer (j_compress_ptr cinfo)
+empty_output_buffer (j_compress_ptr)
 {
     fprintf (stderr, "Error: JPEG compressor ran out of buffer space\n");
     return TRUE;
 }
 
 static void
-term_destination (j_compress_ptr cinfo)
+term_destination (j_compress_ptr)
 {
-    /* do nothing */
 }
 
 int
@@ -142,7 +140,7 @@ jpegijg_compress_8u_gray (const uint8_t * src, int width, int height, int stride
     jpeg_set_quality (&cinfo, quality, TRUE);
 
     jpeg_start_compress (&cinfo, TRUE);
-    while (cinfo.next_scanline < height) {
+    while (static_cast<int>(cinfo.next_scanline) < height) {
         JSAMPROW row = (JSAMPROW)(src + cinfo.next_scanline * stride);
         jpeg_write_scanlines (&cinfo, &row, 1);
     }
@@ -178,7 +176,7 @@ jpegijg_compress_8u_rgb (const uint8_t * src, int width, int height, int stride,
     jpeg_set_quality (&cinfo, quality, TRUE);
 
     jpeg_start_compress (&cinfo, TRUE);
-    while (cinfo.next_scanline < height) {
+    while (static_cast<int>(cinfo.next_scanline) < height) {
         JSAMPROW row = (JSAMPROW)(src + cinfo.next_scanline * stride);
         jpeg_write_scanlines (&cinfo, &row, 1);
     }
@@ -231,7 +229,7 @@ jpegijg_compress_8u_bgra (const uint8_t * src, int width, int height, int stride
     jpeg_set_quality (&cinfo, quality, TRUE);
 
     jpeg_start_compress (&cinfo, TRUE);
-    while (cinfo.next_scanline < height) {
+    while (static_cast<int>(cinfo.next_scanline) < height) {
         uint8_t buf[width*3];
         pixel_convert_8u_bgra_to_8u_rgb (buf, 0, width, 1,
                 src + cinfo.next_scanline * stride, 0);
