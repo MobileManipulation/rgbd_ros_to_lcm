@@ -223,7 +223,7 @@ public:
       }
 
     }
-    catch (std::runtime_error e)
+    catch (std::runtime_error& e)
     {
       ROS_ERROR_STREAM("Error in converting cloud to RGB image message: "
         << e.what());
