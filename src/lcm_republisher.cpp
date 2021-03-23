@@ -170,6 +170,11 @@ public:
       depth_width = depth_msg->width;
       depth_height = depth_msg->height;
 
+      if (rgb_width != depth_width || rgb_height != depth_height) {
+        ROS_WARN("Expected rgb dimensions (%d,%d) to be equal to depth dimensions (%d,%d)",
+        rgb_width, rgb_height, depth_width, depth_height);
+      }
+
       //$ user-specified outgoing image dimensions for both depth and rgb
       private_nh.param<bool>("enforce_resize", enforce_resize_, false);
       private_nh.param<int>("resize_width", resize_width_, rgb_width);
