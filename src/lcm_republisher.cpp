@@ -104,6 +104,10 @@ class LCMRepublisher
   bot_core::image_t* rgb_lcm_msg_;
   bot_core::image_t* depth_lcm_msg_;
 
+  bool enforce_resize_ {};
+  int resize_width_ {};
+  int resize_height_ {};
+
 public:
   LCMRepublisher()
   {
@@ -165,6 +169,11 @@ public:
       rgb_height = rgb_msg->height;
       depth_width = depth_msg->width;
       depth_height = depth_msg->height;
+
+      //$ user-specified outgoing image dimensions for both depth and rgb
+      private_nh.param<bool>("enforce_resize", enforce_resize_, false);
+      private_nh.param<int>("resize_width", resize_width_, rgb_width);
+      private_nh.param<int>("resize_height", resize_height_, rgb_height);
     }
 
     //$ JPEG compression parameters
@@ -455,7 +464,17 @@ public:
       ros::shutdown();
     }
 
-    publishLCM(timestamp, rgb, depth);
+    if (enforce_resize_) {
+      cv::Mat resized_rgb;
+      cv::Mat resized_depth;
+
+      cv::resize(rgb, resized_rgb, cv::Size(resize_width_, resize_height_));
+      cv::resize(depth, resized_depth, cv::Size(resize_width_, resize_height_));
+
+      publishLCM(timestamp, resized_rgb, resized_depth);
+    } else {
+      publishLCM(timestamp, rgb, depth);
+    }
   }
 
 
