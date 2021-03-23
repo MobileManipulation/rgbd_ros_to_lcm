@@ -104,6 +104,11 @@ class LCMRepublisher
   bot_core::image_t* rgb_lcm_msg_;
   bot_core::image_t* depth_lcm_msg_;
 
+  bool enforce_resize_ {};
+  int resize_width_ {};
+  int resize_height_ {};
+  bool assert_ratio_maintained_ {};
+
 public:
   LCMRepublisher()
   {
@@ -165,6 +170,29 @@ public:
       rgb_height = rgb_msg->height;
       depth_width = depth_msg->width;
       depth_height = depth_msg->height;
+
+      if (rgb_width != depth_width || rgb_height != depth_height) {
+        ROS_WARN("Expected rgb dimensions (%d,%d) to be equal to depth dimensions (%d,%d)",
+        rgb_width, rgb_height, depth_width, depth_height);
+      }
+
+      // user-specified outgoing image dimensions for both depth and rgb
+      private_nh.param<bool>("enforce_resize", enforce_resize_, false);
+      private_nh.param<int>("resize_width", resize_width_, rgb_width);
+      private_nh.param<int>("resize_height", resize_height_, rgb_height);
+      private_nh.param<bool>("assert_ratio_maintained", assert_ratio_maintained_, false);
+
+      if (resize_width_ == rgb_width && resize_height_ == rgb_height) {
+        ROS_WARN("Resize desired, but real image dimensions already equal desired");
+        enforce_resize_ = false;
+      }
+
+      auto aspect_ratio_orig {rgb_width / rgb_height};
+      auto aspect_ratio_resized {resize_width_ / resize_height_};
+      if (assert_ratio_maintained_ && aspect_ratio_orig != aspect_ratio_resized) {
+        ROS_ERROR("Aspect ratio not maintained in resized dimension!");
+        ros::shutdown();
+      }
     }
 
     //$ JPEG compression parameters
@@ -385,7 +413,17 @@ public:
     if (debug_print_statements_)
       ROS_INFO("conversion to rgb and depth cv::Mat done");
 
-    publishLCM((long unsigned int) cloud->header.stamp, rgb, depth);
+    if (enforce_resize_) {
+      cv::Mat resized_rgb;
+      cv::Mat resized_depth;
+
+      cv::resize(rgb, resized_rgb, cv::Size(resize_width_, resize_height_));
+      cv::resize(depth, resized_depth, cv::Size(resize_width_, resize_height_));
+
+      publishLCM((long unsigned int) cloud->header.stamp, resized_rgb, resized_depth);
+    } else {
+      publishLCM((long unsigned int) cloud->header.stamp, rgb, depth);
+    }
 
   }
 
@@ -455,7 +493,17 @@ public:
       ros::shutdown();
     }
 
-    publishLCM(timestamp, rgb, depth);
+    if (enforce_resize_) {
+      cv::Mat resized_rgb;
+      cv::Mat resized_depth;
+
+      cv::resize(rgb, resized_rgb, cv::Size(resize_width_, resize_height_));
+      cv::resize(depth, resized_depth, cv::Size(resize_width_, resize_height_));
+
+      publishLCM(timestamp, resized_rgb, resized_depth);
+    } else {
+      publishLCM(timestamp, rgb, depth);
+    }
   }
 
 
