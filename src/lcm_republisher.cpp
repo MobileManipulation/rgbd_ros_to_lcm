@@ -107,6 +107,7 @@ class LCMRepublisher
   bool enforce_resize_ {};
   int resize_width_ {};
   int resize_height_ {};
+  bool assert_ratio_maintained_ {};
 
 public:
   LCMRepublisher()
@@ -179,10 +180,18 @@ public:
       private_nh.param<bool>("enforce_resize", enforce_resize_, false);
       private_nh.param<int>("resize_width", resize_width_, rgb_width);
       private_nh.param<int>("resize_height", resize_height_, rgb_height);
+      private_nh.param<bool>("assert_ratio_maintained", assert_ratio_maintained_, false);
 
       if (resize_width_ == rgb_width && resize_height_ == rgb_height) {
         ROS_WARN("Resize desired, but real image dimensions already equal desired");
         enforce_resize_ = false;
+      }
+
+      auto aspect_ratio_orig {rgb_width / rgb_height};
+      auto aspect_ratio_resized {resize_width_ / resize_height_};
+      if (assert_ratio_maintained_ && aspect_ratio_orig != aspect_ratio_resized) {
+        ROS_ERROR("Aspect ratio not maintained in resized dimension!");
+        ros::shutdown();
       }
     }
 
