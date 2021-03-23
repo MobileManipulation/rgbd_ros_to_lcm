@@ -179,6 +179,11 @@ public:
       private_nh.param<bool>("enforce_resize", enforce_resize_, false);
       private_nh.param<int>("resize_width", resize_width_, rgb_width);
       private_nh.param<int>("resize_height", resize_height_, rgb_height);
+
+      if (resize_width_ == rgb_width && resize_height_ == rgb_height) {
+        ROS_WARN("Resize desired, but real image dimensions already equal desired");
+        enforce_resize_ = false;
+      }
     }
 
     //$ JPEG compression parameters
