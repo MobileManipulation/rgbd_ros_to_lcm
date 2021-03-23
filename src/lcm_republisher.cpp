@@ -394,7 +394,17 @@ public:
     if (debug_print_statements_)
       ROS_INFO("conversion to rgb and depth cv::Mat done");
 
-    publishLCM((long unsigned int) cloud->header.stamp, rgb, depth);
+    if (enforce_resize_) {
+      cv::Mat resized_rgb;
+      cv::Mat resized_depth;
+
+      cv::resize(rgb, resized_rgb, cv::Size(resize_width_, resize_height_));
+      cv::resize(depth, resized_depth, cv::Size(resize_width_, resize_height_));
+
+      publishLCM((long unsigned int) cloud->header.stamp, resized_rgb, resized_depth);
+    } else {
+      publishLCM((long unsigned int) cloud->header.stamp, rgb, depth);
+    }
 
   }
 
