@@ -9,6 +9,9 @@
       rgb_topic: /camera/rgb/image_rect_color
       depth_topic: /camera/depth_registered/sw_registered/image_rect_raw
       cloud_topic: /camera/depth_registered/points
+      enforce_resize: true
+      resize_width: 1280
+      resize_height: 720
 
       # output parameters
       output_lcm_channel: "OPENNI_FRAME"
