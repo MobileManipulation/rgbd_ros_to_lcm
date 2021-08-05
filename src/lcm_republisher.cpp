@@ -52,9 +52,9 @@
 
 #include <zlib.h>
 
+#include <drake/lcmt_image.hpp>
+#include <drake/lcmt_image_array.hpp>
 #include <lcm/lcm-cpp.hpp>
-#include <bot_core/image_t.hpp>
-#include <bot_core/images_t.hpp>
 
 #include <message_filters/subscriber.h>
 #include <message_filters/synchronizer.h>
@@ -101,8 +101,8 @@ class LCMRepublisher
   uint8_t* depth_compress_buf_;
   int depth_compress_buf_size_;
 
-  bot_core::image_t* rgb_lcm_msg_;
-  bot_core::image_t* depth_lcm_msg_;
+  drake::lcmt_image *rgb_lcm_msg_;
+  drake::lcmt_image *depth_lcm_msg_;
 
   bool enforce_resize_ {};
   int resize_width_ {};
@@ -210,8 +210,8 @@ public:
 
     ROS_INFO("Allocated zlib compression buffer for dimensions %d x %d", depth_width, depth_height);
 
-    rgb_lcm_msg_ = new bot_core::image_t();
-    depth_lcm_msg_ = new bot_core::image_t();
+    rgb_lcm_msg_ = new drake::lcmt_image();
+    depth_lcm_msg_ = new drake::lcmt_image();
   }
 
   ~LCMRepublisher()
@@ -299,15 +299,13 @@ public:
     rgb_lcm_msg_->height = rgb.rows;
     rgb_lcm_msg_->row_stride = rgb.cols;
 
-    rgb_lcm_msg_->nmetadata = 0;
-
     rgb_lcm_msg_->row_stride = rgb.step;
 
     rgb_lcm_msg_->size = rgb.cols * rgb.rows * 3;
     rgb_lcm_msg_->data = std::vector<unsigned char>(rgb.ptr(), rgb.ptr() + rgb_lcm_msg_->size);
     if (!compress_rgb_)
     {
-      rgb_lcm_msg_->pixelformat = 861030210; //$ PIXEL_FORMAT_BGR
+      rgb_lcm_msg_->pixel_format = drake::lcmt_image::PIXEL_FORMAT_BGR;
     }
     else
     {
@@ -321,7 +319,7 @@ public:
       }
       memcpy(&rgb_lcm_msg_->data[0], image_buf_, compressed_size);
       rgb_lcm_msg_->size = compressed_size;
-      rgb_lcm_msg_->pixelformat = bot_core::image_t::PIXEL_FORMAT_MJPEG;
+      rgb_lcm_msg_->pixel_format = drake::lcmt_image::COMPRESSION_METHOD_JPEG;
     }
 
     depth_lcm_msg_->utime = rgb_lcm_msg_->utime;
@@ -330,14 +328,13 @@ public:
     depth_lcm_msg_->height = depth.rows;
     depth_lcm_msg_->row_stride = depth.cols;
 
-    depth_lcm_msg_->nmetadata = 0;
     depth_lcm_msg_->row_stride = depth.step;
 
     if (!compress_depth_)
     {
       depth_lcm_msg_->size = depth.cols * depth.rows * 2;
       depth_lcm_msg_->data = std::vector<unsigned char>(depth.ptr(), depth.ptr() + depth_lcm_msg_->size);
-      depth_lcm_msg_->pixelformat = 357; //$ PIXEL_FORMAT_BE_GRAY16
+      depth_lcm_msg_->pixel_format = drake::lcmt_image::PIXEL_FORMAT_GRAY;
     }
     else
     {
@@ -356,28 +353,17 @@ public:
 
       depth_lcm_msg_->size = (int)compressed_size;
       memcpy(&depth_lcm_msg_->data[0], depth_compress_buf_, compressed_size);
-      depth_lcm_msg_->pixelformat = -2;
+      depth_lcm_msg_->pixel_format = drake::lcmt::PIXEL_FORMAT_INVALID;
       if (debug_print_statements_)
         ROS_INFO("memcpy to depth_lcm message complete!");
 
     }
 
-    bot_core::images_t images;
+    drake::lcmt_image_array images;
     images.utime = rgb_lcm_msg_->utime;
-    images.n_images = 2;
+    images.num_images = 2;
     images.images.push_back(*rgb_lcm_msg_);
     images.images.push_back(*depth_lcm_msg_);
-    images.image_types.push_back(0); //$ LEFT = 0
-
-    if (!compress_depth_)
-    {
-      images.image_types.push_back(4); //$ DEPTH_MM = 4
-    }
-    else
-    {
-      images.image_types.push_back(6); //$ DEPTH_MM_ZIPPED = 6
-      // z depth, values similar to the OpenNI format, zipped with zlib
-    }
     lcm_.publish(lcm_channel_, &images);
 
     i_++;

@@ -8,10 +8,9 @@
 
 #include <zlib.h>
 
+#include <drake/lcmt_image.hpp>
+#include <drake/lcmt_image_Array.hpp>
 #include <lcm/lcm-cpp.hpp>
-#include <bot_core/image_t.hpp>
-#include <bot_core/images_t.hpp>
-
 
 class ImageExtractor
 {
@@ -69,7 +68,7 @@ public:
         }
         if (event->channel == lcm_channel_) {
             //$ only consider events that are on the desired channel
-            bot_core::images_t message;
+            drake::lcmt_image_array message;
             message.decode(event->data, 0, event->datalen);
             if (i == 0) {
                 initializeDimensions(message);
@@ -88,9 +87,8 @@ public:
   {
   }
 
-  void initializeDimensions(bot_core::images_t message)
-  {
-    bot_core::image_t color_image = message.images[0];
+  void initializeDimensions(drake::lcmt_image_array message) {
+    drake::lcmt_imgae color_image = message.images[0];
     width = color_image.width;
     height = color_image.height;
     num_pixels_ = width * height;
@@ -98,13 +96,12 @@ public:
     image_read_buf_ = new unsigned char[num_pixels_ * 3];
   }
 
-  void decompressAndSaveImages(bot_core::images_t message)
-  {
+  void decompressAndSaveImages(drake::lcmt_image_array message) {
     int64_t timestamp {message.utime};
     ROS_INFO("Timestamp: %li", timestamp);
 
-    bot_core::image_t color_image = message.images[0];
-    bot_core::image_t depth_image = message.images[1];
+    drake::lcmt_imgae color_image = message.images[0];
+    drake::lcmt_imgae depth_image = message.images[1];
 
     depth_size_ = depth_image.size;
     image_size_ = color_image.size;
@@ -145,9 +142,7 @@ public:
     std::string depth_name = output_folder_ + "/" + std::to_string(timestamp) + "_depth.png";
     cv::Mat depth_mat(height, width, CV_16UC1, &depth_read_buf_[0]); 
     cv::imwrite(depth_name, depth_mat);
-
   }
-
 };
 
 int main(int argc, char** argv)
